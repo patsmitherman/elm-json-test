@@ -112,3 +112,6 @@ decodeGifUrl =
        message: "https://dog.ceo/api/img/vizsla/n02100583_2265.jpg"
    }
 -}
+{-
+   https://github.com/toddmotto/public-apis
+-}
