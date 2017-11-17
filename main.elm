@@ -21,7 +21,13 @@ type alias Model =
     { name : String
     , url : String
     , loading : Bool
+    , breeds : List String
+    , selectedBreed : String
     }
+
+
+type alias Breeds =
+    List String
 
 
 modelInitialValue : Model
@@ -29,12 +35,17 @@ modelInitialValue =
     { name = "Test"
     , url = "qweqwe"
     , loading = False
+    , breeds = []
+    , selectedBreed = "test"
     }
 
 
 type Msg
     = NewImage (Result Http.Error String)
     | LoadImage String
+    | LoadBreedList
+    | ReceiveBreedList (Result Http.Error Breeds)
+    | BreedSelected String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -47,14 +58,35 @@ update msg model =
             ( { model | loading = False }, Cmd.none )
 
         LoadImage topic ->
-            ( { model | url = "./assets/loading.gif", loading = True }, getRandomGif topic )
+            ( { model | url = "./assets/loading.gif", loading = True }, getRandomGif topic model )
+
+        LoadBreedList ->
+            ( model, getBreedList )
+
+        ReceiveBreedList (Ok breeds) ->
+            ( { model | breeds = breeds }, Cmd.none )
+
+        ReceiveBreedList (Err _) ->
+            ( { model | loading = False }, Cmd.none )
+
+        BreedSelected breed ->
+            ( { model | selectedBreed = breed }, Cmd.none )
+
+
+onChange : (String -> msg) -> Html.Attribute msg
+onChange tagger =
+    on "change" (Decode.map tagger Html.Events.targetValue)
 
 
 view : Model -> Html Msg
 view model =
     div []
         [ div [ style [ ( "margin", "20px auto" ), ( "text-align", "center" ) ] ]
-            [ button
+            [ if List.isEmpty model.breeds then
+                ul [] []
+              else
+                select [ style selectStyle, onChange BreedSelected ] (List.map (\x -> option [] [ text x ]) model.breeds)
+            , button
                 [ style
                     [ ( "width", "150px" )
                     , ( "height", "40px" )
@@ -82,20 +114,18 @@ subscriptions model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( modelInitialValue, Cmd.none )
+    ( modelInitialValue, getBreedList )
 
 
 
 -- HTTP
 
 
-getRandomGif : String -> Cmd Msg
-getRandomGif topic =
+getRandomGif : String -> Model -> Cmd Msg
+getRandomGif topic model =
     let
         url =
-            "https://dog.ceo/api/breed/boxer/images/random"
-
-        --"https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=" ++ topic
+            "https://dog.ceo/api/breed/" ++ model.selectedBreed ++ "/images/random"
     in
         Http.send NewImage (Http.get url decodeGifUrl)
 
@@ -105,13 +135,31 @@ decodeGifUrl =
     Decode.at [ "message" ] Decode.string
 
 
+getBreedList : Cmd Msg
+getBreedList =
+    let
+        url =
+            "https://dog.ceo/api/breeds/list"
+    in
+        Http.send ReceiveBreedList (Http.get url decodeBreedList)
 
---Decode.at [ "data", "image_url" ] Decode.string
-{- {
-       status: "success",
-       message: "https://dog.ceo/api/img/vizsla/n02100583_2265.jpg"
-   }
--}
+
+decodeBreedList : Decode.Decoder (List String)
+decodeBreedList =
+    Decode.at [ "message" ] (Decode.list Decode.string)
+
+
+
 {-
    https://github.com/toddmotto/public-apis
 -}
+
+
+selectStyle : List ( String, String )
+selectStyle =
+    [ ( "display", "block" )
+    , ( "margin", "20px auto" )
+    , ( "width", "150px" )
+    , ( "height", "35px" )
+    , ( "text-align", "center" )
+    ]

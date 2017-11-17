@@ -1,3 +1,32 @@
+var _user$project$Main$selectStyle = {
+	ctor: '::',
+	_0: {ctor: '_Tuple2', _0: 'display', _1: 'block'},
+	_1: {
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'margin', _1: '20px auto'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'width', _1: '150px'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'height', _1: '35px'},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
+					_1: {ctor: '[]'}
+				}
+			}
+		}
+	}
+};
+var _user$project$Main$decodeBreedList = A2(
+	_elm_lang$core$Json_Decode$at,
+	{
+		ctor: '::',
+		_0: 'message',
+		_1: {ctor: '[]'}
+	},
+	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string));
 var _user$project$Main$decodeGifUrl = A2(
 	_elm_lang$core$Json_Decode$at,
 	{
@@ -9,12 +38,38 @@ var _user$project$Main$decodeGifUrl = A2(
 var _user$project$Main$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$none;
 };
-var _user$project$Main$modelInitialValue = {name: 'Test', url: 'qweqwe', loading: false};
-var _user$project$Main$init = {ctor: '_Tuple2', _0: _user$project$Main$modelInitialValue, _1: _elm_lang$core$Platform_Cmd$none};
-var _user$project$Main$Model = F3(
-	function (a, b, c) {
-		return {name: a, url: b, loading: c};
+var _user$project$Main$onChange = function (tagger) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'change',
+		A2(_elm_lang$core$Json_Decode$map, tagger, _elm_lang$html$Html_Events$targetValue));
+};
+var _user$project$Main$modelInitialValue = {
+	name: 'Test',
+	url: 'qweqwe',
+	loading: false,
+	breeds: {ctor: '[]'},
+	selectedBreed: 'test'
+};
+var _user$project$Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {name: a, url: b, loading: c, breeds: d, selectedBreed: e};
 	});
+var _user$project$Main$BreedSelected = function (a) {
+	return {ctor: 'BreedSelected', _0: a};
+};
+var _user$project$Main$ReceiveBreedList = function (a) {
+	return {ctor: 'ReceiveBreedList', _0: a};
+};
+var _user$project$Main$getBreedList = function () {
+	var url = 'https://dog.ceo/api/breeds/list';
+	return A2(
+		_elm_lang$http$Http$send,
+		_user$project$Main$ReceiveBreedList,
+		A2(_elm_lang$http$Http$get, url, _user$project$Main$decodeBreedList));
+}();
+var _user$project$Main$init = {ctor: '_Tuple2', _0: _user$project$Main$modelInitialValue, _1: _user$project$Main$getBreedList};
+var _user$project$Main$LoadBreedList = {ctor: 'LoadBreedList'};
 var _user$project$Main$LoadImage = function (a) {
 	return {ctor: 'LoadImage', _0: a};
 };
@@ -42,45 +97,75 @@ var _user$project$Main$view = function (model) {
 				},
 				{
 					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$button,
+					_0: _elm_lang$core$List$isEmpty(model.breeds) ? A2(
+						_elm_lang$html$Html$ul,
+						{ctor: '[]'},
+						{ctor: '[]'}) : A2(
+						_elm_lang$html$Html$select,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$style(
-								{
-									ctor: '::',
-									_0: {ctor: '_Tuple2', _0: 'width', _1: '150px'},
-									_1: {
-										ctor: '::',
-										_0: {ctor: '_Tuple2', _0: 'height', _1: '40px'},
-										_1: {
-											ctor: '::',
-											_0: {ctor: '_Tuple2', _0: 'border-radius', _1: '5px'},
-											_1: {
-												ctor: '::',
-												_0: {ctor: '_Tuple2', _0: 'border', _1: 'solid 1px #999'},
-												_1: {
-													ctor: '::',
-													_0: {ctor: '_Tuple2', _0: 'outline', _1: 'none'},
-													_1: {ctor: '[]'}
-												}
-											}
-										}
-									}
-								}),
+							_0: _elm_lang$html$Html_Attributes$style(_user$project$Main$selectStyle),
 							_1: {
 								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(
-									_user$project$Main$LoadImage('puppy')),
+								_0: _user$project$Main$onChange(_user$project$Main$BreedSelected),
 								_1: {ctor: '[]'}
 							}
 						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('Load Picture'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
+						A2(
+							_elm_lang$core$List$map,
+							function (x) {
+								return A2(
+									_elm_lang$html$Html$option,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text(x),
+										_1: {ctor: '[]'}
+									});
+							},
+							model.breeds)),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$button,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$style(
+									{
+										ctor: '::',
+										_0: {ctor: '_Tuple2', _0: 'width', _1: '150px'},
+										_1: {
+											ctor: '::',
+											_0: {ctor: '_Tuple2', _0: 'height', _1: '40px'},
+											_1: {
+												ctor: '::',
+												_0: {ctor: '_Tuple2', _0: 'border-radius', _1: '5px'},
+												_1: {
+													ctor: '::',
+													_0: {ctor: '_Tuple2', _0: 'border', _1: 'solid 1px #999'},
+													_1: {
+														ctor: '::',
+														_0: {ctor: '_Tuple2', _0: 'outline', _1: 'none'},
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										}
+									}),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onClick(
+										_user$project$Main$LoadImage('puppy')),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Load Picture'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
 				}),
 			_1: {
 				ctor: '::',
@@ -142,42 +227,75 @@ var _user$project$Main$view = function (model) {
 var _user$project$Main$NewImage = function (a) {
 	return {ctor: 'NewImage', _0: a};
 };
-var _user$project$Main$getRandomGif = function (topic) {
-	var url = 'https://dog.ceo/api/breed/boxer/images/random';
-	return A2(
-		_elm_lang$http$Http$send,
-		_user$project$Main$NewImage,
-		A2(_elm_lang$http$Http$get, url, _user$project$Main$decodeGifUrl));
-};
+var _user$project$Main$getRandomGif = F2(
+	function (topic, model) {
+		var url = A2(
+			_elm_lang$core$Basics_ops['++'],
+			'https://dog.ceo/api/breed/',
+			A2(_elm_lang$core$Basics_ops['++'], model.selectedBreed, '/images/random'));
+		return A2(
+			_elm_lang$http$Http$send,
+			_user$project$Main$NewImage,
+			A2(_elm_lang$http$Http$get, url, _user$project$Main$decodeGifUrl));
+	});
 var _user$project$Main$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
-		if (_p0.ctor === 'NewImage') {
-			if (_p0._0.ctor === 'Ok') {
+		switch (_p0.ctor) {
+			case 'NewImage':
+				if (_p0._0.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{url: _p0._0._0, loading: false}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{loading: false}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+			case 'LoadImage':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{url: _p0._0._0, loading: false}),
-					_1: _elm_lang$core$Platform_Cmd$none
+						{url: './assets/loading.gif', loading: true}),
+					_1: A2(_user$project$Main$getRandomGif, _p0._0, model)
 				};
-			} else {
+			case 'LoadBreedList':
+				return {ctor: '_Tuple2', _0: model, _1: _user$project$Main$getBreedList};
+			case 'ReceiveBreedList':
+				if (_p0._0.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{breeds: _p0._0._0}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{loading: false}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+			default:
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{loading: false}),
+						{selectedBreed: _p0._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			}
-		} else {
-			return {
-				ctor: '_Tuple2',
-				_0: _elm_lang$core$Native_Utils.update(
-					model,
-					{url: './assets/loading.gif', loading: true}),
-				_1: _user$project$Main$getRandomGif(_p0._0)
-			};
 		}
 	});
 var _user$project$Main$main = _elm_lang$html$Html$program(
